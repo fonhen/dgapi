@@ -1,4 +1,5 @@
 <?php
+defined('EmpireCMSAdmin') or die;
 $m = api_param_get('m');
 if($m === ''){
 	$title = '添加';

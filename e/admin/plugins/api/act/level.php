@@ -1,4 +1,5 @@
 <?php
+defined('EmpireCMSAdmin') or die;
 $sql = $empire->query("select groupid,groupname from {$dbtbpre}enewsgroup order by groupid limit 100");
 ?>
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">

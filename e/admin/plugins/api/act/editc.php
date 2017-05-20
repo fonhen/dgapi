@@ -1,4 +1,5 @@
 <?php
+defined('EmpireCMSAdmin') or die;
 $m = api_param_get('m');
 if($m === '' || !isset($api_conf['list'][$m])){
 	printerror2('参数错误');
