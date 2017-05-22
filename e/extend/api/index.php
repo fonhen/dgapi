@@ -10,9 +10,6 @@ require("./function.php");
 $link = db_connect();
 $empire = new mysqlquery();
 $api = new api();
-$api->empire = $empire;
-$api->publib_r = $public_r;
-$api->ecms_config = $ecms_config;
 $editor=1;
 $config = array();
 if(!is_file("./conf.php")){

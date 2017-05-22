@@ -1,6 +1,37 @@
 <?php
 class api {
-	public $empire , $publib_r , $ecms_config;
+	public $empire , $public_r , $ecms_config , $dbtbpre;
+	
+	public function __construct(){
+		global $public_r, $empire, $dbtbpre, $ecms_config;
+		$this->empire = $empire;
+		$this->public_r = $public_r;
+		$this->dbtbpre = $dbtbpre;
+		$this->ecms_config = $ecms_config;
+	}
+	
+	public function __get($name){
+		return false;
+	}
+	
+	public function __set($name , $value){
+		return false;
+	}
+	
+	/* load */
+	public function load($name = ''){
+		$file = './_class/' . $name . '.class.php';
+		if(!is_file($file)){
+			$this->error($name.'.class.php 不存在');
+		}else{
+			require_once($file);
+		}
+		$cname = 'api_'.$name;
+		if(!class_exists($cname)){
+			$this->error('api_'.$name.' 未定义');
+		}
+		return @new $cname();
+	}
 	
 	/* param */
 	public function get($name , $default = '' , $fn = 'trim'){
@@ -18,7 +49,7 @@ class api {
 		return !empty($fn) && function_exists($fn) ? $fn($value) : $value;
 	}
 	
-	/* 输出 */
+	/* output */
 	
 	public function show($str , $type = 'text/html' , $charset='utf-8'){
 		header('Content-Type: '.$type.'; charset='.$charset);
@@ -42,14 +73,110 @@ class api {
 		$this->show($json , 'application/json');
 	}
 	
-	/* 数据库 */
+	/* database */
 	
 	public function execute($sql = '' , $exit = true){
 		return $exit ? $this->empire->query($sql) : $this->empire->query1($sql);
 	}
 	
-	public function query($sql = ''){
-		$data = $this->empire->query($sql);
+	public function insert($table = '' , $data = array()){
+		if(empty($table) || empty($data) || !is_array($data)){
+			return false;
+		}
+		$table = $this->dbtbpre . $table;
+		$field = "";
+		$value = "";
+		foreach($data as $f=>$v){
+			$field .= "," . $f;
+			$value .= ",'" . RepPostStr($v) ."'";
+		}
+		$field = substr($field , 1);
+		$value = substr($value , 1);
+		
+		$sql = "insert into {$table} ({$field}) values ({$value});";
+		$res = $this->execute($sql , false);
+		if(true === $res){
+			return $this->empire->lastid();
+		}else{
+			return false;
+		}
+	}
+	
+	public function update($table = '' , $data = '' , $where = '0'){
+		if(empty($table) || empty($data) || (!is_string($data) && !is_array($data))){
+			return false;
+		}
+		$table = $this->dbtbpre . $table;
+		if(is_string($data)){
+			$setField = $data;
+		}else{
+			$setField = "";
+			foreach($data as $f=>$v){
+				$v = !is_array($v) ? "'{$v}'" : $v[0]; 
+				$setField .= ",{$f}={$v}";
+			}
+			$setField = substr($setField , 1);
+		}
+		$sql = "update {$table} set {$setField} where {$where}";
+		return $this->execute($sql , false);
+	}
+	
+	public function select($table = '' , $field = '*' , $where = '1' , $limit = 20 , $page = 1 , $orderby = ''){
+		if(empty($table)){
+			return false;
+		}
+		$arr = array(
+			'table' => '',
+			'field' => '*',
+			'where' => '1',
+			'limit' => 20,
+			'page' => 1,
+			'orderby' => ''
+		);
+		$paramType = 0;
+		if(is_array($table)){
+			$paramType = 1;
+			$arr = array_merge($arr , $table);
+		}else if(is_array($field)){
+			$paramType = 1;
+			$arr = array_merge($arr , $field);
+			$arr['table'] = $table;
+		}
+		if($paramType){
+			$table = $arr['table'];
+			$field = $arr['field'];
+			$where = $arr['where'];
+			$limit = $arr['limit'];
+			$page = $arr['page'];
+			$orderby = $arr['orderby'];
+		}
+		$page = (int)$page;
+		$limit = (int)$limit;
+		$page = $page > 0 ? $page : 1;
+		$limit = $limit > 0 ? $limit : 10;
+		$limit = $limit < 1000 ? $limit : 1000;
+		$offset = ($page-1) * $limit;
+		
+		$table = $this->dbtbpre . $table;
+		$orderby = $orderby ? 'order by '.$orderby : '';
+		$sql = "select {$field} from {$table} where {$where} {$orderby} limit {$offset},{$limit};";
+		return $this->query($sql , false);
+	}
+	
+	public function delete($table = '' , $where = '0'){
+		if(empty($table)){
+			return false;
+		}
+		$table = $this->dbtbpre . $table;
+		$sql = "delete from {$table} where {$where};";
+		return $this->execute($sql , false);
+	}
+	
+	public function query($sql = '' , $exit = false){
+		$data = $this->execute($sql , $exit);
+		if(false === $data){
+			return false;
+		}
 		$res = array();
 		while($r = $this->empire->fetch($data)){
 			$arr = array();
@@ -76,112 +203,6 @@ class api {
 		}
 		return $res;
 	}
-	
-	/*
-	 * 会员登陆
-	 * @param data 登陆时提交的表单数据
-	 * @retuen
-	 * true / 成功
-	 * 100 / 参数错误
-	 * 200 / 帐号密码为空
-	 * 201 / 帐号密码不正确
-	 * 202 / 帐号不存在
-	 * 203 / 密码不正确
-	 * 204 / 帐号被锁定
-	 * 300 / 验证码为空
-	 * 301 / 验证码超时
-	 * 302 / 验证码不正确
-	 * 
-	*/
-	public function user_login($data){
-		if(empty($data) || !is_array($data)){
-			return 100;
-		}
-		$username = trim($data['username']);
-		$password = trim($data['password']);
-		if($username === '' || $password === ''){
-			return 200;
-		}
-		
-		if($this->public_r['loginkey_ok']){
-			$key = trim($data['key']);
-			if($key === ''){
-				return 300;
-			}else{
-				$key = $this->ecms_check_showkey('checkloginkey' , $key , 0);
-				if($key === 'timeout'){
-					return 301;
-				}else if($key === 'fail'){
-					return 302;
-				}
-			}
-		}
-		$username = RepPostVar($username);
-		$password = RepPostVar($password);
-		
-		$user = $this->empire->fetch1("select * from " . $this->ecms_config['member']['tablename'] . " where username = '" . $username . "' limit 1");
-		if(empty($user) || !is_array($user)){
-			return 202;
-		}
-		if((int)$user['checked'] === 0){
-			return 204;
-		}
-		if(!eDoCkMemberPw($password , $user['password'] , $user['salt'])){
-			return 203;
-		}
-		
-		$rnd = make_password(20);
-		$lasttime = time();
-		$user['groupid'] = (int)$user['groupid'];
-		$lastip = egetip();
-		$lastipport = egetipport();
-		
-		$dbtbpre = $this->ecms_config['db']['dbtbpre'];
-		
-		$this->empire->query("update " . $this->ecms_config['member']['tablename'] . " set rnd = '$rnd' where userid = '$user[userid]'");
-		$this->empire->query("update {$dbtbpre}enewsmemberadd set lasttime='$lasttime',lastip='$lastip',loginnum=loginnum+1,lastipport='$lastipport' where userid='$user[userid]'");
-		
-		$lifetime=(int)$data['lifetime'];
-		$logincookie=0;
-		if($lifetime){
-			$logincookie=time()+$lifetime;
-		}
-		esetcookie("mlusername" , $username , $logincookie);
-		esetcookie("mluserid" , $user['userid'] , $logincookie);
-		esetcookie("mlgroupid" , $user['groupid'] , $logincookie);
-		esetcookie("mlrnd" , $rnd , $logincookie);
-		
-		qGetLoginAuthstr($user['userid'] , $username , $rnd , $user['groupid'] , $logincookie);
-		
-		ecmsEmptyShowKey('checkloginkey');
-		esetcookie("returnurl","");
-		
-		return $user;
-		
-	}
-	
-	/* 会员登出 */
-	public function user_logout(){
-		EmptyEcmsCookie();
-	}
-	
-	/* ecms 验证码验证 */
-	public function ecms_check_showkey($varname , $postval , $ecms=0){
-		list($cktime , $pass , $val) =  explode(',',getcvar($varname,$ecms));
-		$time=time();
-		if($cktime > $time || $time-$cktime > $this->public_r['keytime']*60){
-			return 'timeout';
-		}
-		if( empty($postval) || md5($postval)<>$val ){
-			return 'fail';
-		}
-		$checkpass = md5(md5(md5($postval).'EmpireCMS'.$cktime).$this->public_r['keyrnd']);
-		if( $checkpass <> $pass ){
-			return 'fail';
-		}
-		return true;
-	}
-	
 	
 	function send_http_status($code) {
 		static $_status = array(
@@ -240,3 +261,5 @@ class api {
 		}
 	}
 }
+
+
