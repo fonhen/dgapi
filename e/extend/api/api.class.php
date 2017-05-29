@@ -1,13 +1,14 @@
 <?php
 class api {
-	public $empire , $public_r , $ecms_config , $dbtbpre;
+	public $empire , $public_r , $ecms_config , $dbtbpre , $level_r;
 	
 	public function __construct(){
-		global $public_r, $empire, $dbtbpre, $ecms_config;
+		global $public_r, $empire, $dbtbpre, $ecms_config , $level_r;
 		$this->empire = $empire;
 		$this->public_r = $public_r;
 		$this->dbtbpre = $dbtbpre;
 		$this->ecms_config = $ecms_config;
+		$this->level_r = $level_r;
 	}
 	
 	public function __get($name){
@@ -202,6 +203,11 @@ class api {
 			$res = false;
 		}
 		return $res;
+	}
+	
+	public function total($table = '' , $where = '1'){
+		$sql = true !== $where ? "select count(*) as total from ".($this->dbtbpre . $table)." where ".$where : $table;
+		return $this->empire->gettotal($sql);
 	}
 	
 	function send_http_status($code) {
