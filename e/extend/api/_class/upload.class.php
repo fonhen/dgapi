@@ -109,8 +109,6 @@ class api_upload {
 			return false;
 		}
 		
-		var_dump($filepath);
-		
 		if(!@move_uploaded_file($file['tmp_name'], $filepath)){
 			$this->error = '文件上传保存错误！';
 			return false;
