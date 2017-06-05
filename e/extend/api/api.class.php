@@ -20,7 +20,7 @@ class api {
 	}
 	
 	/* load */
-	public function load($name = ''){
+	public function load($name = '' , $config = array()){
 		$file = './_class/' . $name . '.class.php';
 		if(!is_file($file)){
 			$this->error($name.'.class.php 不存在');
@@ -31,7 +31,8 @@ class api {
 		if(!class_exists($cname)){
 			$this->error('api_'.$name.' 未定义');
 		}
-		return @new $cname();
+		$config = is_array($config) ? $config : array();
+		return @new $cname($config);
 	}
 	
 	/* param */
