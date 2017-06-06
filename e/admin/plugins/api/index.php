@@ -35,7 +35,7 @@ if(!is_file('./install.lock')){
 $conf = require("./conf.php");
 
 //验证权限
-api_check_level($logininid);
+api_check_level($loginlevel);
 
 if($act === 'form' || $act === 'list' || $act === "level" || $act === "conf" || $act === "editc" || $act === 'function'){
 	require('./act/'.$act.'.php');
