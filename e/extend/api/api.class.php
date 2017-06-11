@@ -35,6 +35,51 @@ class api {
 		return @new $cname($config);
 	}
 	
+	public function import($name='' , $model='' , $assign = array()){
+		if(is_array($model)){
+			$assign = $model;
+			$model = '';
+		}
+		$controller = $this->controller($name , $model);
+		if(!empty($assign)){
+			foreach($assign as $key=>$val){
+				$$key = $val;
+			}	
+		}
+		$api = $this;
+		include($controller);
+	}
+	
+	/* get */
+	public function controller($name = '' , $model = ''){
+		$model = $model !== '' ? $model : api_m;
+		return './'.$model.'/'.$name.'.php';
+	}
+	
+	/* cache */
+	public function cache($name , $fn , $time = 0 , $format = true){
+		$time = (int)$time;
+		$filename = md5($name . $this->cachehash);
+		$filepath = './_cache/'.$filename;
+		if(is_bool($fn) && true === $fn){
+			@unlink($filepath);
+		}else{
+			$mtime = is_file($filepath) ? @filemtime($filepath) : false;
+			if($mtime && time() - $mtime <= $time){
+				$data = @file_get_contents($filepath);
+				return $format ? unserialize($data) : $data;
+			}else{
+				if(is_object($fn)){
+					$data = @$fn();
+					@file_put_contents($filepath , $format ? serialize($data) : $data);
+					return $data;
+				}else{
+					return false;
+				}
+			}
+		}
+	}
+	
 	/* param */
 	public function get($name , $default = '' , $fn = 'trim'){
 		$value = isset($_GET[$name]) ? $_GET[$name] : $default;
