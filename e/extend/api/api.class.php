@@ -96,6 +96,19 @@ class api {
 		return !empty($fn) && function_exists($fn) ? $fn($value) : $value;
 	}
 	
+	public function input($name = '' , $default = '' , $fn = 'trim'){
+		$input = json_decode(file_get_contents('php://input') , true);
+		$input = !empty($input) ? $input : array();
+		if(empty($name)){
+			return $input;
+		}else if(!empty($input)){
+			$value = isset($input[$name]) ? $input[$name] : '';
+			return !empty($fn) && function_exists($fn) ? $fn($value) : $value;	
+		}else{
+			return $this->param($name , $default , $fn);
+		}
+	}
+	
 	/* output */
 	
 	public function show($str , $type = 'text/html' , $charset='utf-8'){
