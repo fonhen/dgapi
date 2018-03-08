@@ -29,15 +29,15 @@ class gzh {
 	/* 微信公众号认证 */
 	public function check(){
 		if(isset($_GET['echostr'])){
-			$timestamp = $this->api->get['timestamp'];
-			$nonce = $this->api->get['nonce'];
+			$timestamp = $this->api->get('timestamp');
+			$nonce = $this->api->get('nonce');
 			
 			$arr = array($this->token, $timestamp, $nonce);
 			sort($arr, SORT_STRING);
 			$code = sha1(implode('',$arr));
 			
 			header('Content-Type: text');
-			echo $this->api->get['signature'] === $code ? $this->api->get['echostr'] : '';
+			echo $this->api->get('signature') === $code ? $this->api->get('echostr') : '';
 			exit;
 		}
 	}
