@@ -1,5 +1,5 @@
 <?php
-class gzh {
+class api_gzh {
 	private $config = array(
 		"token"	=> '',
 		"aeskey" => ''
