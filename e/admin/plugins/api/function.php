@@ -247,7 +247,7 @@ function api_build_conf($path , $conf = array()){
 }
 
 function api_param_post($name = '' , $default = '' , $fn = 'trim'){
-	$value = isset($_POST[$name]) ? (magic_quotes_gpc() ? stripslashes($_POST[$name]) : $_POST[$name]) : $default;
+	$value = isset($_POST[$name]) ? (get_magic_quotes_gpc() ? stripslashes($_POST[$name]) : $_POST[$name]) : $default;
 	if(!empty($fn) && function_exists($fn)){
 		return $fn($value);
 	}else{
