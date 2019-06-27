@@ -12,19 +12,36 @@
 //验证码验证 1:成功 , -1:超时 0:失败
 function api_check_code($name , $val = '' , $ecms = 0){
 	global $public_r;
-	list($cktime , $pass , $code) =  explode(',',getcvar($name , $ecms));
-	$time=time();
-	if($cktime > $time || $time-$cktime > $public_r['keytime']*60){
-		return -1;
-	}
-	if( empty($val) || md5($val) !== $code ){
-		return 0;
-	}
-	$checkpass = md5(md5(md5($val).'EmpireCMS'.$cktime).$public_r['keyrnd']);
-	if( $checkpass !== $pass ){
-		return 0;
-	}
-	return 1;
+    if((float)EmpireCMS_VERSION < 7.5){
+        list($cktime , $pass , $code) =  explode(',',getcvar($name , $ecms));
+    
+        $time=time();
+        if($cktime > $time || $time-$cktime > $public_r['keytime']*60){
+            return -1;
+        }
+        if( empty($val) || md5($val) !== $code ){
+            return 0;
+        }
+        
+        $checkpass = md5(md5(md5($val).'EmpireCMS'.$cktime).$public_r['keyrnd']);
+        
+        if( $checkpass !== $pass ){
+            return 0;
+        }
+        return 1;
+    }else{
+        list($cktime , $pass , $code) =  explode(',',getcvar($name , $ecms));
+        $time=time();
+        if($cktime > $time || $time-$cktime > $public_r['keytime']*60){
+            return -1;
+        }
+        $checkpass=md5('d!i#g?o-d-'.md5(md5($name.'E.C#M!S^e-'.$val).'-E?m!P.i#R-e'.$cktime).$public_r['keyrnd'].'P#H!o,m^e-e');
+        if( empty($val) || $checkpass !== $pass ){
+            return 0;
+        }else{
+            return 1;
+        }
+    }
 }
  
 //时间验证

@@ -1,4 +1,5 @@
 <?php
+require('../../class/EmpireCMS_version.php');
 require('../../class/connect.php');
 require('../../class/db_sql.php');
 require("../../data/dbcache/class.php");
