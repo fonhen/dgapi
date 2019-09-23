@@ -4,7 +4,6 @@ class api_user {
     public function __construct(){
         $this->api = new api();
     }
-
     //获取会员信息
     public function find($username = '' , $password = '' , $all = false){
         $where = is_numeric($username) ? 'userid='.$username : 'username="'.$username.'"';
