@@ -194,5 +194,4 @@ class api_user {
         }
         return $code;
     }
-
 }
