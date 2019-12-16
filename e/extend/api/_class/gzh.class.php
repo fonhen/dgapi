@@ -58,9 +58,9 @@ class api_gzh {
 			$post = $this->getPost();
 		}
 		if(!empty($post) && !empty($datas)){
-			$xml = '<xml><ToUserName><![CDATA['.$post["FromUserName"].']]></ToUserName><FromUserName><![CDATA['.$post['ToUserName'].']]></FromUserName><CreateTime>'.time().'</CreateTime><MsgType><![CDATA[news] ]></MsgType><ArticleCount>'.count($datas).'</ArticleCount><Articles>';
+			$xml = '<xml><ToUserName><![CDATA['.$post["FromUserName"].']]></ToUserName><FromUserName><![CDATA['.$post['ToUserName'].']]></FromUserName><CreateTime>'.time().'</CreateTime><MsgType><![CDATA[news]]></MsgType><ArticleCount>'.count($datas).'</ArticleCount><Articles>';
 			foreach($datas as $v){
-				$xml .= '<item><Title><![CDATA['.$v["title"].']]></Title><Description><![CDATA['.$v["description"].']]></Description><PicUrl><![CDATA['.$v["url"].']]></PicUrl><Url><![CDATA['.$v["picurl"].']]></Url></item>';
+				$xml .= '<item><Title><![CDATA['.$v["title"].']]></Title><Description><![CDATA['.$v["description"].']]></Description><PicUrl><![CDATA['.$v["picurl"].']]></PicUrl><Url><![CDATA['.$v["url"].']]></Url></item>';
 			}
 			$xml .= '</Articles></xml>';
 			$this->xml($xml);
